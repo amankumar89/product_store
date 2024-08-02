@@ -1,4 +1,4 @@
-import Product from '../models/Product';
+import Product from '../models/product.model.js';
 import { isValidPrice, isValidUrl } from '../../libs/validators.js';
 import { interalError } from '../../libs/errorMessages.js';
 
