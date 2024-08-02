@@ -1,0 +1,1 @@
+export const interalError = { success: false, message: 'Internal Server Error' };
