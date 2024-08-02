@@ -1,6 +1,7 @@
 import Product from '../models/product.model.js';
 import { isValidPrice, isValidUrl } from '../../libs/validators.js';
 import { interalError } from '../../libs/errorMessages.js';
+import { v4 as uniqueId } from 'uuid';
 
 // create product
 export const createProduct = async (req, res) => {
@@ -22,11 +23,18 @@ export const createProduct = async (req, res) => {
     const productByImageUrl = await Product.findOne({ imageUrl });
     if (productByName || productByImageUrl) return res.status(400).json({ success: false, message: 'Product already exists with name or image' });
     
-    const newProduct = new Product({ name, price, imageUrl });
+    const newId = uniqueId();
+    const newProduct = new Product({ id: newId, name, price, imageUrl });
     const addedProduct = await newProduct.save();
 
     if (!addedProduct) return res.status(500).json({ success: false, message: 'Failed to create product' });
-    return res.status(201).json({ success: true, data: addedProduct });
+    const newData = {
+      id: addedProduct?.id,
+      name: addedProduct?.name,
+      price: addedProduct?.price,
+      imageUrl: addedProduct?.imageUrl,
+    };
+    return res.status(201).json({ success: true, data: newData });
   } catch (error) {
     console.error('Error creating product:', error);
     return res.status(500).json(interalError);
@@ -37,7 +45,13 @@ export const createProduct = async (req, res) => {
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find({});
-    return res.status(200).json({ success: true, data: products });
+    const dataToSend = products?.map(product => ({
+      id: product?.id,
+      name: product?.name,
+      price: product?.price,
+      imageUrl: product?.imageUrl,
+    })) ?? [];
+    return res.status(200).json({ success: true, data: dataToSend });
   } catch (error) {
     console.error('Error in getting all products:', error);
     return res.status(500).json(interalError);
@@ -51,7 +65,13 @@ export const getProductById = async (req, res) => {
     if (!id) return res.status(400).json({ success: false, message: 'Product id is required' });
     const product = await Product.findById(id);
     if(!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    return res.status(200).json({ success: true, data: product });
+    const productToSend = {
+      id: product?.id,
+      name: product?.name,
+      price: product?.price,
+      imageUrl: product?.imageUrl,
+    };
+    return res.status(200).json({ success: true, data: productToSend });
   } catch (error) {
     console.error('Error in getting product by id:', error);
     return res.status(500).json(interalError);
@@ -72,7 +92,13 @@ export const updateProduct = async (req, res) => {
     
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
     if(!updatedProduct) return res.status(404).json({ success: false, message: 'Product not found' });
-    return res.status(200).json({ success: true, data: updatedProduct });
+    const productToSend = {
+      id: updatedProduct?.id,
+      name: updatedProduct?.name,
+      price: updatedProduct?.price,
+      imageUrl: updatedProduct?.imageUrl,
+    };
+    return res.status(200).json({ success: true, data: productToSend });
   } catch (error) {
     console.log('Error in updating product:', error);
     return res.status(500).json(interalError);
@@ -86,7 +112,13 @@ export const deleteProduct = async (req, res) => {
     if(!id) return res.status(400).json({ success: false, message: 'Product id is required' });
     const deletedProduct = await Product.findByIdAndDelete(id);
     if(!deletedProduct) return res.status(404).json({ success: false, message: 'Product not found' });
-    return res.status(200).json({ success: true, data: deletedProduct });
+    const deletedProductToSend = {
+      id: deletedProduct?.id,
+      name: deletedProduct?.name,
+      price: deletedProduct?.price,
+      imageUrl: deletedProduct?.imageUrl,
+    };
+    return res.status(200).json({ success: true, data: deletedProductToSend });
   } catch (error) {
     console.log('Error in deleting product:', error);
     return res.status(500).json(interalError);
