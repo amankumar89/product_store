@@ -18,6 +18,10 @@ export const createProduct = async (req, res) => {
   }
 
   try {
+    const productByName = await Product.findOne({ name });
+    const productByImageUrl = await Product.findOne({ imageUrl });
+    if (productByName || productByImageUrl) return res.status(400).json({ success: false, message: 'Product already exists with name or image' });
+    
     const newProduct = new Product({ name, price, imageUrl });
     const addedProduct = await newProduct.save();
 
@@ -58,9 +62,14 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
+  const { name, imageUrl } = updatedData;
   try {
     if(!id) return res.status(400).json({ success: false, message: 'Product id is required' });
     if(!updatedData || Object.keys(updatedData).length === 0) return res.status(400).json({ success: false, message: 'At least one field is required' });
+    const productByName = await Product.findOne({ name });
+    const productByImageUrl = await Product.findOne({ imageUrl });
+    if (productByName || productByImageUrl) return res.status(400).json({ success: false, message: 'Product already exists with name or image' });
+    
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
     if(!updatedProduct) return res.status(404).json({ success: false, message: 'Product not found' });
     return res.status(200).json({ success: true, data: updatedProduct });
