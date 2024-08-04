@@ -1,7 +1,6 @@
 import Product from '../models/product.model.js';
 import { isValidPrice, isValidUrl } from '../../libs/validators.js';
 import { interalError } from '../../libs/errorMessages.js';
-import { v4 as uniqueId } from 'uuid';
 
 // create product
 export const createProduct = async (req, res) => {
@@ -23,13 +22,12 @@ export const createProduct = async (req, res) => {
     const productByImageUrl = await Product.findOne({ imageUrl });
     if (productByName || productByImageUrl) return res.status(400).json({ success: false, message: 'Product already exists with name or image' });
     
-    const newId = uniqueId();
-    const newProduct = new Product({ id: newId, name, price, imageUrl });
+    const newProduct = new Product({ name, price, imageUrl });
     const addedProduct = await newProduct.save();
 
     if (!addedProduct) return res.status(500).json({ success: false, message: 'Failed to create product' });
     const newData = {
-      id: addedProduct?.id,
+      id: addedProduct?._id,
       name: addedProduct?.name,
       price: addedProduct?.price,
       imageUrl: addedProduct?.imageUrl,
@@ -46,7 +44,7 @@ export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find({});
     const dataToSend = products?.map(product => ({
-      id: product?.id,
+      id: product?._id,
       name: product?.name,
       price: product?.price,
       imageUrl: product?.imageUrl,
@@ -66,7 +64,7 @@ export const getProductById = async (req, res) => {
     const product = await Product.findById(id);
     if(!product) return res.status(404).json({ success: false, message: 'Product not found' });
     const productToSend = {
-      id: product?.id,
+      id: product?._id,
       name: product?.name,
       price: product?.price,
       imageUrl: product?.imageUrl,
@@ -93,7 +91,7 @@ export const updateProduct = async (req, res) => {
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
     if(!updatedProduct) return res.status(404).json({ success: false, message: 'Product not found' });
     const productToSend = {
-      id: updatedProduct?.id,
+      id: updatedProduct?._id,
       name: updatedProduct?.name,
       price: updatedProduct?.price,
       imageUrl: updatedProduct?.imageUrl,
@@ -113,7 +111,7 @@ export const deleteProduct = async (req, res) => {
     const deletedProduct = await Product.findByIdAndDelete(id);
     if(!deletedProduct) return res.status(404).json({ success: false, message: 'Product not found' });
     const deletedProductToSend = {
-      id: deletedProduct?.id,
+      id: deletedProduct?._id,
       name: deletedProduct?.name,
       price: deletedProduct?.price,
       imageUrl: deletedProduct?.imageUrl,
